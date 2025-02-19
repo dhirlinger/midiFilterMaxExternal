@@ -72,6 +72,7 @@ long    midiFilter_mainMath(t_midiFilter *x, long value);
 long    midiFilter_arrayContains(t_midiFilter *x, numberArrayVector &collection, long targetValue);
 void    midiFilter_removeValuesFromArray(t_midiFilter *x, numberArrayVector &collection, long valueToRemove);
 void    midiFilter_version();
+void    midiFilter_printReassigned(t_midiFilter *x);
 
 
 // globals
@@ -104,12 +105,13 @@ void ext_main(void *r)
     class_addmethod(c,(method)midiFilter_arrayContains, "int", A_LONG, 0);
     class_addmethod(c, (method)midiFilter_removeValuesFromArray, "int", A_LONG, 0);
     class_addmethod(c, (method)midiFilter_version, "version", 0);
+    class_addmethod(c, (method)midiFilter_printReassigned, "printReassigned", 0);
     
 
     class_register(CLASS_BOX, c);
     s_midiFilter_class = c;
     
-    post("midiFilter object 2.3");
+    post("midiFilter object 2.3.7");
 }
 
 
@@ -126,12 +128,12 @@ void *midiFilter_new(t_symbol *s, long argc, t_atom *argv)
         x->m_outlet2 = outlet_new(x, NULL);
         x->m_outlet = outlet_new(x, NULL);
         x->m_mainNotes = new numberVector;
-        x->m_mainNotes->reserve(22);
+        x->m_mainNotes->reserve(220);
         midiFilter_list(x, gensym("list"), argc, argv);
         x->m_localNotes = new numberVector;
         x->m_localNotes->reserve(22);
         x->m_reassignedNotes = new numberArrayVector;
-        x->m_reassignedNotes->reserve(22);
+        x->m_reassignedNotes->reserve(220);
     }
     return(x);
 }
@@ -266,7 +268,7 @@ void midiFilter_list(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
         long velocity = atom_getlong(argv+1);
         long beforeMain;
         long firstReturnedPitch;
-        long originalPitch;
+        long reassignedPitch;
         
         //if incoming pitch is note-on and mainNotes is empty then play and add to lists
         
@@ -388,28 +390,43 @@ void midiFilter_list(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
                 
             }
             
-        //if mainnotes exists and is note-off
+        //if is note-off
             
-        } else if (x->m_mainNotes->size() > 0 && velocity == 0) {
+        }
+        
+        if (velocity == 0) {
             
-            //if localNotes contains pitch remove from lists and send note-off
+            //if reassignedNoters is empty, output note-off and remove from lists
             
-            if(midiFilter_arrayContains(x, *x->m_reassignedNotes, pitch) != -1){
-                
-                originalPitch = midiFilter_arrayContains(x, *x->m_reassignedNotes, pitch);
-                atom_setlong(argv, originalPitch);
+            if(x->m_reassignedNotes->size() == 0){
                 
                 outlet_list(x->m_outlet, NULL, 2, argv);
-                
-                //remove from reassignedNotes & other lists
-                midiFilter_removeValuesFromArray(x, *x->m_reassignedNotes, originalPitch);
-                midiFilter_removeValue(x, *x->m_mainNotes, originalPitch);
-                midiFilter_removeValue(x, *x->m_localNotes, originalPitch);
+                midiFilter_removeValue(x, *x->m_localNotes, pitch);
+                midiFilter_removeValue(x, *x->m_mainNotes, pitch);
                 
                 return;
             }
             
-            else if (midiFilter_contains(x, *x->m_localNotes, pitch)){
+            //if reassignedNotes contains pitch change output, output reassigned note-off and remove from lists
+            
+            if(midiFilter_arrayContains(x, *x->m_reassignedNotes, pitch) != -1){
+                
+                reassignedPitch = midiFilter_arrayContains(x, *x->m_reassignedNotes, pitch);
+                atom_setlong(argv, reassignedPitch);
+                
+                outlet_list(x->m_outlet, NULL, 2, argv);
+                
+                //remove from reassignedNotes & other lists
+                midiFilter_removeValuesFromArray(x, *x->m_reassignedNotes, pitch);
+                midiFilter_removeValue(x, *x->m_mainNotes, reassignedPitch);
+                midiFilter_removeValue(x, *x->m_localNotes, reassignedPitch);
+                
+                return;
+            }
+            
+            //otherwise if localNotes contains the pitch send note-off and remove
+            
+            if (midiFilter_contains(x, *x->m_localNotes, pitch)){
                 
                 midiFilter_removeValue(x, *x->m_localNotes, pitch);
                 midiFilter_removeValue(x, *x->m_mainNotes, pitch);
@@ -625,29 +642,53 @@ void midiFilter_removeValue(t_midiFilter *x, numberVector &collection, long valu
     //systhread_mutex_unlock(x->m_mutex);
 }
 
-void  midiFilter_removeValuesFromArray(t_midiFilter *x, numberArrayVector &collection, long valueToRemove)
+void midiFilter_removeValuesFromArray(t_midiFilter *x, numberArrayVector &collection, long valueToRemove)
 {
-    
-    
     if (!collection.empty()) {
-        
-        for (numberArrayIterator it = collection.begin(); it != collection.end(); ++it) {
-            
-            for(size_t j = 0; j < 2; ++j) {
-                if ((*it)[0] == valueToRemove) {
-                    it = collection.erase(it);
-                    break;
-                }
+        for (numberArrayIterator it = collection.begin(); it != collection.end(); ) {
+            if ((*it)[0] == valueToRemove) {
+                it = collection.erase(it);  // Erase returns the next valid iterator
+            } else {
+                ++it;  // Only increment if no deletion occurs
             }
-            
         }
-        
     }
-    
 }
+
+
+void midiFilter_printReassigned(t_midiFilter *x)
+{
+    numberArrayIterator iter, begin, end;
+    int i = 0;
+    long ac = 0;
+    t_atom *av = NULL;
+
+    ac = x->m_reassignedNotes->size() * 2; // Each entry in m_reassignedNotes contains two values
+
+    if (ac)
+        av = new t_atom[ac];
+
+    if (ac && av) {
+        begin = x->m_reassignedNotes->begin();
+        end = x->m_reassignedNotes->end();
+        iter = begin;
+
+        for (; iter != end; ++iter) {
+            atom_setlong(av + i, (*iter)[0]); // First value
+            atom_setlong(av + i + 1, (*iter)[1]); // Second value
+            i += 2;
+        }
+
+        outlet_anything(x->m_outlet2, gensym("list"), ac, av); // Send list to outlet
+
+        delete[] av;
+    }
+}
+    
+
 
 void midiFilter_version()
 {
-    post("midiFilter object 2.3");
+    post("midiFilter object 2.3.7");
 }
 
