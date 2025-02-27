@@ -1,7 +1,7 @@
 /**
     @file
     midi filter - patch midi filter
-    
+    Version 2!
     doug hirlinger - doughirlinger@gmail.com
 
     @ingroup    examples
