@@ -1,6 +1,7 @@
 /**
     @file
     midi filter - patch midi filter
+    
     doug hirlinger - doughirlinger@gmail.com
 
     @ingroup    examples
@@ -44,7 +45,7 @@ typedef numberArrayVector::iterator numberArrayIterator;
 
 
 // max object instance data
-typedef struct _midiFilter {
+typedef struct _midiFilter2 {
     t_object            ob;
     numberVector        *m_mainNotes;    // note: you must store this as a pointer and not directly as a member of the object's struct
     numberVector        *m_localNotes;    // note: you must store this as a pointer and not directly as a member of the object's struct
@@ -52,84 +53,84 @@ typedef struct _midiFilter {
     void                *m_outlet;
     void                *m_outlet2;
     //t_systhread_mutex    m_mutex;
-} t_midiFilter;
+} t_midiFilter2;
 
 
 // prototypes
-void    *midiFilter_new(t_symbol *s, long argc, t_atom *argv);
-void    midiFilter_free(t_midiFilter *x);
-void    midiFilter_assist(t_midiFilter *x, void *b, long m, long a, char *s);
-void    midiFilter_bang(t_midiFilter *x);
-void    midiFilter_printLocalNotes(t_midiFilter *x); //same as bang but for localNotes
-void    midiFilter_count(t_midiFilter *x);
-void    midiFilter_list(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv);
-void    midiFilter_externalMidi(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv);
-void    midiFilter_clear(t_midiFilter *x);
-bool    midiFilter_contains(t_midiFilter *x, numberVector &collection, long targetValue);
-bool    midiFilter_localMath(t_midiFilter *x, long value);
-void    midiFilter_removeValue(t_midiFilter *x, numberVector &collection, long valueToRemove);
-long    midiFilter_mainMath(t_midiFilter *x, long value);
-long    midiFilter_arrayContains(t_midiFilter *x, numberArrayVector &collection, long targetValue);
-void    midiFilter_removeValuesFromArray(t_midiFilter *x, numberArrayVector &collection, long valueToRemove);
-void    midiFilter_version();
-void    midiFilter_printReassigned(t_midiFilter *x);
+void    *midiFilter2_new(t_symbol *s, long argc, t_atom *argv);
+void    midiFilter2_free(t_midiFilter2 *x);
+void    midiFilter2_assist(t_midiFilter2 *x, void *b, long m, long a, char *s);
+void    midiFilter2_bang(t_midiFilter2 *x);
+void    midiFilter2_printLocalNotes(t_midiFilter2 *x); //same as bang but for localNotes
+void    midiFilter2_count(t_midiFilter2 *x);
+void    midiFilter2_list(t_midiFilter2 *x, t_symbol *msg, long argc, t_atom *argv);
+void    midiFilter2_externalMidi(t_midiFilter2 *x, t_symbol *msg, long argc, t_atom *argv);
+void    midiFilter2_clear(t_midiFilter2 *x);
+bool    midiFilter2_contains(t_midiFilter2 *x, numberVector &collection, long targetValue);
+bool    midiFilter2_localMath(t_midiFilter2 *x, long value);
+void    midiFilter2_removeValue(t_midiFilter2 *x, numberVector &collection, long valueToRemove);
+long    midiFilter2_mainMath(t_midiFilter2 *x, long value);
+long    midiFilter2_arrayContains(t_midiFilter2 *x, numberArrayVector &collection, long targetValue);
+void    midiFilter2_removeValuesFromArray(t_midiFilter2 *x, numberArrayVector &collection, long valueToRemove);
+void    midiFilter2_version();
+void    midiFilter2_printReassigned(t_midiFilter2 *x);
 
 
 // globals
-static t_class    *s_midiFilter_class = NULL;
+static t_class    *s_midiFilter2_class = NULL;
 
 /************************************************************************************/
 
 void ext_main(void *r)
 {
-    t_class    *c = class_new("midiFilter",
-                           (method)midiFilter_new,
-                           (method)midiFilter_free,
-                           sizeof(t_midiFilter),
+    t_class    *c = class_new("midiFilter2",
+                           (method)midiFilter2_new,
+                           (method)midiFilter2_free,
+                           sizeof(t_midiFilter2),
                            (method)NULL,
                            A_GIMME,
                            0);
 
-    class_addmethod(c, (method)midiFilter_bang,    "bang",            0);
-    class_addmethod(c, (method)midiFilter_printLocalNotes,    "printLocalNotes",            0);
-    class_addmethod(c, (method)midiFilter_list,    "list",            A_GIMME,0);
-    class_addmethod(c, (method)midiFilter_externalMidi,    "externalMidi",            A_GIMME,0);
-    class_addmethod(c, (method)midiFilter_clear,    "clear",        0);
-    class_addmethod(c, (method)midiFilter_count,    "count",        0);
-    class_addmethod(c, (method)midiFilter_assist,    "assist",        A_CANT, 0);
+    class_addmethod(c, (method)midiFilter2_bang,    "bang",            0);
+    class_addmethod(c, (method)midiFilter2_printLocalNotes,    "printLocalNotes",            0);
+    class_addmethod(c, (method)midiFilter2_list,    "list",            A_GIMME,0);
+    class_addmethod(c, (method)midiFilter2_externalMidi,    "externalMidi",            A_GIMME,0);
+    class_addmethod(c, (method)midiFilter2_clear,    "clear",        0);
+    class_addmethod(c, (method)midiFilter2_count,    "count",        0);
+    class_addmethod(c, (method)midiFilter2_assist,    "assist",        A_CANT, 0);
     class_addmethod(c, (method)stdinletinfo,    "inletinfo",    A_CANT, 0);
-    class_addmethod(c, (method)midiFilter_contains, "int",      A_LONG, 0);
-    class_addmethod(c, (method)midiFilter_localMath, "int", A_LONG, 0);
-    class_addmethod(c, (method)midiFilter_removeValue, "int", A_LONG, 0);
-    class_addmethod(c, (method)midiFilter_mainMath, "int", A_LONG, 0);
-    class_addmethod(c,(method)midiFilter_arrayContains, "int", A_LONG, 0);
-    class_addmethod(c, (method)midiFilter_removeValuesFromArray, "int", A_LONG, 0);
-    class_addmethod(c, (method)midiFilter_version, "version", 0);
-    class_addmethod(c, (method)midiFilter_printReassigned, "printReassigned", 0);
+    class_addmethod(c, (method)midiFilter2_contains, "int",      A_LONG, 0);
+    class_addmethod(c, (method)midiFilter2_localMath, "int", A_LONG, 0);
+    class_addmethod(c, (method)midiFilter2_removeValue, "int", A_LONG, 0);
+    class_addmethod(c, (method)midiFilter2_mainMath, "int", A_LONG, 0);
+    class_addmethod(c,(method)midiFilter2_arrayContains, "int", A_LONG, 0);
+    class_addmethod(c, (method)midiFilter2_removeValuesFromArray, "int", A_LONG, 0);
+    class_addmethod(c, (method)midiFilter2_version, "version", 0);
+    class_addmethod(c, (method)midiFilter2_printReassigned, "printReassigned", 0);
     
 
     class_register(CLASS_BOX, c);
-    s_midiFilter_class = c;
+    s_midiFilter2_class = c;
     
-    post("midiFilter object 2.3.7");
+    post("midiFilter2 object 2.3.7");
 }
 
 
 /************************************************************************************/
 // Object Creation Method
 
-void *midiFilter_new(t_symbol *s, long argc, t_atom *argv)
+void *midiFilter2_new(t_symbol *s, long argc, t_atom *argv)
 {
-    t_midiFilter    *x;
+    t_midiFilter2    *x;
 
-    x = (t_midiFilter *)object_alloc(s_midiFilter_class);
+    x = (t_midiFilter2 *)object_alloc(s_midiFilter2_class);
     if (x) {
        //systhread_mutex_new(&x->m_mutex, 0);
         x->m_outlet2 = outlet_new(x, NULL);
         x->m_outlet = outlet_new(x, NULL);
         x->m_mainNotes = new numberVector;
         x->m_mainNotes->reserve(220);
-        midiFilter_list(x, gensym("list"), argc, argv);
+        midiFilter2_list(x, gensym("list"), argc, argv);
         x->m_localNotes = new numberVector;
         x->m_localNotes->reserve(22);
         x->m_reassignedNotes = new numberArrayVector;
@@ -139,7 +140,7 @@ void *midiFilter_new(t_symbol *s, long argc, t_atom *argv)
 }
 
 
-void midiFilter_free(t_midiFilter *x)
+void midiFilter2_free(t_midiFilter2 *x)
 {
     //systhread_mutex_free(x->m_mutex);
     delete x->m_mainNotes;
@@ -150,7 +151,7 @@ void midiFilter_free(t_midiFilter *x)
 /************************************************************************************/
 // Methods bound to input/inlets
 
-void midiFilter_assist(t_midiFilter *x, void *b, long msg, long arg, char *dst)
+void midiFilter2_assist(t_midiFilter2 *x, void *b, long msg, long arg, char *dst)
 {
     if (msg==1)
         strcpy(dst, "input");
@@ -160,7 +161,7 @@ void midiFilter_assist(t_midiFilter *x, void *b, long msg, long arg, char *dst)
 
 
 
-void midiFilter_bang(t_midiFilter *x)
+void midiFilter2_bang(t_midiFilter2 *x)
 {
     numberIterator iter, begin, end;
     int i = 0;
@@ -203,7 +204,7 @@ void midiFilter_bang(t_midiFilter *x)
 //        systhread_mutex_unlock(x->m_mutex);
 }
 
-void midiFilter_printLocalNotes(t_midiFilter *x)
+void midiFilter2_printLocalNotes(t_midiFilter2 *x)
 {
     numberIterator iter, begin, end;
     int i = 0;
@@ -238,7 +239,7 @@ void midiFilter_printLocalNotes(t_midiFilter *x)
         //systhread_mutex_unlock(x->m_mutex);    // must unlock before calling _clear() or we will deadlock
 
 //        DPOST("about to clear\n", ac);
-//        midiFilter_clear(x);
+//        midiFilter2_clear(x);
 
         outlet_anything(x->m_outlet2, gensym("list"), ac, av); // don't want to call outlets in mutexes either
 
@@ -249,14 +250,14 @@ void midiFilter_printLocalNotes(t_midiFilter *x)
 }
 
 
-void midiFilter_count(t_midiFilter *x)
+void midiFilter2_count(t_midiFilter2 *x)
 {
     outlet_int(x->m_outlet, x->m_mainNotes->size());
     outlet_int(x->m_outlet, x->m_localNotes->size());
 }
 
 
-void midiFilter_list(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
+void midiFilter2_list(t_midiFilter2 *x, t_symbol *msg, long argc, t_atom *argv)
 {
     //if there's an incoming list
     
@@ -294,10 +295,10 @@ void midiFilter_list(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
             
             // refire if note is already in local and exit
             
-//            bool localMath = midiFilter_localMath(x, pitch);
+//            bool localMath = midiFilter2_localMath(x, pitch);
 //            post("localMath %ld", localMath);
             
-            if (midiFilter_contains(x, *x->m_localNotes, pitch)){
+            if (midiFilter2_contains(x, *x->m_localNotes, pitch)){
                 
                 outlet_list(x->m_outlet, NULL, 2, argv);
                 
@@ -308,10 +309,10 @@ void midiFilter_list(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
             //if pitch makes it through localMath pass to mainMath
             //otherwise localMath returns false and note is dropped
             
-            else if (midiFilter_localMath(x, pitch)) {
+            else if (midiFilter2_localMath(x, pitch)) {
           
                 beforeMain = pitch;
-                pitch = midiFilter_mainMath(x, pitch);
+                pitch = midiFilter2_mainMath(x, pitch);
                 
                 //if mainMath returns same pitch play and add to lists
                  
@@ -333,7 +334,7 @@ void midiFilter_list(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
                 } else {
                     
                     firstReturnedPitch = pitch;
-                    pitch = midiFilter_mainMath(x, pitch);
+                    pitch = midiFilter2_mainMath(x, pitch);
                    
                     //if pitch is unchanged second time play and add to lists
                     
@@ -358,7 +359,7 @@ void midiFilter_list(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
                     } else {
                         
                         firstReturnedPitch = pitch;
-                        pitch = midiFilter_mainMath(x, pitch);
+                        pitch = midiFilter2_mainMath(x, pitch);
                         
                         if (firstReturnedPitch == pitch) {
                             
@@ -401,35 +402,35 @@ void midiFilter_list(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
             if(x->m_reassignedNotes->size() == 0){
                 
                 outlet_list(x->m_outlet, NULL, 2, argv);
-                midiFilter_removeValue(x, *x->m_localNotes, pitch);
-                midiFilter_removeValue(x, *x->m_mainNotes, pitch);
+                midiFilter2_removeValue(x, *x->m_localNotes, pitch);
+                midiFilter2_removeValue(x, *x->m_mainNotes, pitch);
                 
                 return;
             }
             
             //if reassignedNotes contains pitch change output, output reassigned note-off and remove from lists
             
-            if(midiFilter_arrayContains(x, *x->m_reassignedNotes, pitch) != -1){
+            if(midiFilter2_arrayContains(x, *x->m_reassignedNotes, pitch) != -1){
                 
-                reassignedPitch = midiFilter_arrayContains(x, *x->m_reassignedNotes, pitch);
+                reassignedPitch = midiFilter2_arrayContains(x, *x->m_reassignedNotes, pitch);
                 atom_setlong(argv, reassignedPitch);
                 
                 outlet_list(x->m_outlet, NULL, 2, argv);
                 
                 //remove from reassignedNotes & other lists
-                midiFilter_removeValuesFromArray(x, *x->m_reassignedNotes, pitch);
-                midiFilter_removeValue(x, *x->m_mainNotes, reassignedPitch);
-                midiFilter_removeValue(x, *x->m_localNotes, reassignedPitch);
+                midiFilter2_removeValuesFromArray(x, *x->m_reassignedNotes, pitch);
+                midiFilter2_removeValue(x, *x->m_mainNotes, reassignedPitch);
+                midiFilter2_removeValue(x, *x->m_localNotes, reassignedPitch);
                 
                 return;
             }
             
             //otherwise if localNotes contains the pitch send note-off and remove
             
-            if (midiFilter_contains(x, *x->m_localNotes, pitch)){
+            if (midiFilter2_contains(x, *x->m_localNotes, pitch)){
                 
-                midiFilter_removeValue(x, *x->m_localNotes, pitch);
-                midiFilter_removeValue(x, *x->m_mainNotes, pitch);
+                midiFilter2_removeValue(x, *x->m_localNotes, pitch);
+                midiFilter2_removeValue(x, *x->m_mainNotes, pitch);
                 
                 
                 outlet_list(x->m_outlet, NULL, 2, argv);
@@ -449,7 +450,7 @@ void midiFilter_list(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
 
 //for midi coming from other channels via send and receive objects
 
-void midiFilter_externalMidi(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
+void midiFilter2_externalMidi(t_midiFilter2 *x, t_symbol *msg, long argc, t_atom *argv)
 {
     if (argc > 0) {
         
@@ -464,7 +465,7 @@ void midiFilter_externalMidi(t_midiFilter *x, t_symbol *msg, long argc, t_atom *
             
         } else if (velocity == 0){
             
-            midiFilter_removeValue(x, *x->m_mainNotes, pitch);
+            midiFilter2_removeValue(x, *x->m_mainNotes, pitch);
             
         }
             
@@ -472,7 +473,7 @@ void midiFilter_externalMidi(t_midiFilter *x, t_symbol *msg, long argc, t_atom *
 }
 
 
-void midiFilter_clear(t_midiFilter *x)
+void midiFilter2_clear(t_midiFilter2 *x)
 {
     //systhread_mutex_lock(x->m_mutex);
     x->m_mainNotes->clear();
@@ -481,7 +482,7 @@ void midiFilter_clear(t_midiFilter *x)
     //systhread_mutex_unlock(x->m_mutex);
 }
 
-bool midiFilter_contains(t_midiFilter *x, numberVector &collection, long targetValue)
+bool midiFilter2_contains(t_midiFilter2 *x, numberVector &collection, long targetValue)
 {
     numberIterator iter, begin, end;
     long value;
@@ -518,7 +519,7 @@ bool midiFilter_contains(t_midiFilter *x, numberVector &collection, long targetV
 }
 
 //returns -1 if no arrays[0] contain note else returns origin value before reassignment
-long midiFilter_arrayContains(t_midiFilter *x, numberArrayVector &collection, long targetValue)
+long midiFilter2_arrayContains(t_midiFilter2 *x, numberArrayVector &collection, long targetValue)
 {
     long output = -1;
     
@@ -541,7 +542,7 @@ long midiFilter_arrayContains(t_midiFilter *x, numberArrayVector &collection, lo
     
 }
 
-bool midiFilter_localMath(t_midiFilter *x, long value)
+bool midiFilter2_localMath(t_midiFilter2 *x, long value)
 {
     numberIterator iter, begin, end;
     
@@ -584,7 +585,7 @@ bool midiFilter_localMath(t_midiFilter *x, long value)
     return response;
 }
 
-long midiFilter_mainMath(t_midiFilter *x, long value)
+long midiFilter2_mainMath(t_midiFilter2 *x, long value)
 {
     numberIterator iter, begin, end;
     long output = value; // Default output is the input value
@@ -600,13 +601,13 @@ long midiFilter_mainMath(t_midiFilter *x, long value)
 
             // Check for minor third or less
             if (value - listValue == 1) {
-                output = value + 2;
+                output = listValue;
             } else if (value - listValue == 2) {
-                output = value + 1;
+                output = listValue;
             } else if (value - listValue == -1) {
-                output = value - 2;
+                output = listValue;
             } else if (value - listValue == -2) {
-                output = value - 1;
+                output = listValue;
             }
         }
     }
@@ -616,7 +617,7 @@ long midiFilter_mainMath(t_midiFilter *x, long value)
 
 
 
-void midiFilter_removeValue(t_midiFilter *x, numberVector &collection, long valueToRemove)
+void midiFilter2_removeValue(t_midiFilter2 *x, numberVector &collection, long valueToRemove)
 {
     // Lock the mutex to ensure thread safety
     //systhread_mutex_lock(x->m_mutex);
@@ -642,7 +643,7 @@ void midiFilter_removeValue(t_midiFilter *x, numberVector &collection, long valu
     //systhread_mutex_unlock(x->m_mutex);
 }
 
-void midiFilter_removeValuesFromArray(t_midiFilter *x, numberArrayVector &collection, long valueToRemove)
+void midiFilter2_removeValuesFromArray(t_midiFilter2 *x, numberArrayVector &collection, long valueToRemove)
 {
     if (!collection.empty()) {
         for (numberArrayIterator it = collection.begin(); it != collection.end(); ) {
@@ -656,7 +657,7 @@ void midiFilter_removeValuesFromArray(t_midiFilter *x, numberArrayVector &collec
 }
 
 
-void midiFilter_printReassigned(t_midiFilter *x)
+void midiFilter2_printReassigned(t_midiFilter2 *x)
 {
     numberArrayIterator iter, begin, end;
     int i = 0;
@@ -687,8 +688,8 @@ void midiFilter_printReassigned(t_midiFilter *x)
     
 
 
-void midiFilter_version()
+void midiFilter2_version()
 {
-    post("midiFilter object 2.3.7");
+    post("midiFilter2 object 2.3.7");
 }
 
