@@ -111,7 +111,7 @@ void ext_main(void *r)
     class_register(CLASS_BOX, c);
     s_midiFilter_class = c;
     
-    post("midiFilter object 2.3.7");
+    post("midiFilter object 2.3.7 debug");
 }
 
 
@@ -377,6 +377,8 @@ void midiFilter_list(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
                             return;
                             
                         } else {
+                            
+                            post("end of the note-on main math line");
                             
                             return;
                             
@@ -689,6 +691,6 @@ void midiFilter_printReassigned(t_midiFilter *x)
 
 void midiFilter_version()
 {
-    post("midiFilter object 2.3.7");
+    post("midiFilter object 2.3.7 debug");
 }
 
