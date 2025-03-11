@@ -111,7 +111,7 @@ void ext_main(void *r)
     class_register(CLASS_BOX, c);
     s_midiFilter_class = c;
     
-    post("midiFilter object 2.3.7 debug");
+    post("midiFilter object 2.3.8 debug");
 }
 
 
@@ -292,12 +292,12 @@ void midiFilter_list(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
             
             //systhread_mutex_unlock(x->m_mutex);
             
-            // refire if note is already in local and exit
+            // refire if note is already in local and localMath returns a pitch then exit
             
 //            bool localMath = midiFilter_localMath(x, pitch);
 //            post("localMath %ld", localMath);
             
-            if (midiFilter_contains(x, *x->m_localNotes, pitch)){
+            if (midiFilter_contains(x, *x->m_localNotes, pitch) && midiFilter_localMath(x, pitch)){
                 
                 outlet_list(x->m_outlet, NULL, 2, argv);
                 
@@ -312,6 +312,8 @@ void midiFilter_list(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
           
                 beforeMain = pitch;
                 pitch = midiFilter_mainMath(x, pitch);
+                post("before1 %d", beforeMain);
+                post("after1 %d", pitch);
                 
                 //if mainMath returns same pitch play and add to lists
                  
@@ -463,6 +465,7 @@ void midiFilter_externalMidi(t_midiFilter *x, t_symbol *msg, long argc, t_atom *
         if (velocity > 0){
             
             x->m_mainNotes->push_back(pitch);
+            post("ext added %d", pitch);
             
         } else if (velocity == 0){
             
@@ -691,6 +694,6 @@ void midiFilter_printReassigned(t_midiFilter *x)
 
 void midiFilter_version()
 {
-    post("midiFilter object 2.3.7 debug");
+    post("midiFilter object 2.3.8 debugg");
 }
 
