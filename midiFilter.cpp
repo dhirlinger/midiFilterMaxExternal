@@ -111,7 +111,7 @@ void ext_main(void *r)
     class_register(CLASS_BOX, c);
     s_midiFilter_class = c;
     
-    post("midiFilter object 2.3.8 debug");
+    post("midiFilter object 2.3.8 debug/refactor");
 }
 
 
