@@ -111,7 +111,7 @@ void ext_main(void *r)
     class_register(CLASS_BOX, c);
     s_midiFilter_class = c;
     
-    post("midiFilter object 2.3.8 debug");
+    post("midiFilter object 2.4 debug/refactor");
 }
 
 
@@ -455,26 +455,26 @@ void midiFilter_list(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
 
 void midiFilter_externalMidi(t_midiFilter *x, t_symbol *msg, long argc, t_atom *argv)
 {
-    if (argc > 0) {
-        
+    if (argc > 1) {
         long pitch = atom_getlong(argv);
-        long velocity = atom_getlong(argv+1);
-        
-        //if incoming pitch is note-on and mainNotes is empty then add to mainNotes
-        
-        if (velocity > 0){
-            
-            x->m_mainNotes->push_back(pitch);
-            post("ext added %d", pitch);
-            
-        } else if (velocity == 0){
-            
+        long velocity = atom_getlong(argv + 1);
+
+        if (velocity > 0) {
+            // Apply spacing logic
+            long adjustedPitch = midiFilter_mainMath(x, pitch);
+
+            // Add the adjusted pitch to m_mainNotes
+            x->m_mainNotes->push_back(adjustedPitch);
+            post("externalMidi: pitch %ld adjusted to %ld and added to m_mainNotes", pitch, adjustedPitch);
+
+        } else if (velocity == 0) {
+            // Remove the original pitch in case it was not altered
             midiFilter_removeValue(x, *x->m_mainNotes, pitch);
-            
+            post("externalMidi: note-off received for pitch %ld", pitch);
         }
-            
     }
 }
+
 
 
 void midiFilter_clear(t_midiFilter *x)
@@ -591,33 +591,29 @@ bool midiFilter_localMath(t_midiFilter *x, long value)
 
 long midiFilter_mainMath(t_midiFilter *x, long value)
 {
-    numberIterator iter, begin, end;
-    long output = value; // Default output is the input value
-    long listValue;
+    bool too_close;
+    long candidate = value;
 
-    if (!x->m_mainNotes->empty()) {
-        begin = x->m_mainNotes->begin();
-        end = x->m_mainNotes->end();
-        iter = begin;
+    do {
+        too_close = false;
 
-        for (; iter != end; ++iter) {
+        for (numberIterator iter = x->m_mainNotes->begin(); iter != x->m_mainNotes->end(); ++iter) {
+            long listValue;
             (*iter).getValue(listValue);
 
-            // Check for minor third or less
-            if (value - listValue == 1) {
-                output = value + 2;
-            } else if (value - listValue == 2) {
-                output = value + 1;
-            } else if (value - listValue == -1) {
-                output = value - 2;
-            } else if (value - listValue == -2) {
-                output = value - 1;
+            long diff = std::abs(candidate - listValue);
+            if (diff > 0 && diff < 3) {
+                too_close = true;
+                candidate++;  // increment and retry
+                break;
             }
         }
-    }
 
-    return output;
+    } while (too_close);
+
+    return candidate;
 }
+
 
 
 
@@ -694,6 +690,6 @@ void midiFilter_printReassigned(t_midiFilter *x)
 
 void midiFilter_version()
 {
-    post("midiFilter object 2.3.8 debugg");
+    post("midiFilter object 2.4 debug");
 }
 
